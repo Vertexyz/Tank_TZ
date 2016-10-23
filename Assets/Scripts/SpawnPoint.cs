@@ -1,10 +1,11 @@
 ﻿using UnityEngine;
-using System.Collections.Generic;
+using System.Collections;
+using EnemyList = System.Collections.Generic.List<Enemy>;
 
 public class SpawnPoint : MonoBehaviour {
 
     [SerializeField]
-    private List<Enemy> enemyPrefab;
+    private EnemyList enemyPrefab;
     
     [SerializeField]
     private float spawnDelaySec = 10.0f;
@@ -15,19 +16,29 @@ public class SpawnPoint : MonoBehaviour {
     {
         playerObject = GameObject.FindGameObjectWithTag("Player").transform;
 
-        InvokeRepeating("Spawn", 0.0f, spawnDelaySec);
+        StartCoroutine(SpawnCo());
 	}
+
+    private IEnumerator SpawnCo()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(spawnDelaySec);
+
+            if (GameController.Instance.EnemiesCount < GameController.Instance.MaxEnemiesCount)
+            {
+                Spawn();
+            }
+        }
+    }
 
     public void Spawn()
     {
-        if (GameController.Instance.EnemiesCount < GameController.Instance.MaxEnemiesCount)
-        {
-            Enemy newEnemy =
-                Instantiate(enemyPrefab[Random.Range(0, enemyPrefab.Count)], transform.position, Quaternion.identity) as
-                    Enemy;
-            newEnemy.Target = playerObject;
+        Enemy newEnemy =
+            Instantiate(enemyPrefab[Random.Range(0, enemyPrefab.Count)], transform.position, Quaternion.identity) as
+                Enemy;
+        newEnemy.Target = playerObject;
 
-            GameController.Instance.EnemiesCount++;
-        }
+        GameController.Instance.EnemiesCount++;
     }
 }
